@@ -1,7 +1,9 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://ym-diary.vercel.app/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+// For development: http://localhost:3000/api
+// For production: set NEXT_PUBLIC_API_URL=/api or https://ym-diary.vercel.app/api in Vercel
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
