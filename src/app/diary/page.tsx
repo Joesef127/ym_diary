@@ -51,12 +51,13 @@ export default function DiaryPage() {
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteNoteId, setDeleteNoteId] = useState<number | null>(null);
   const [error, setError] = useState("");
+  const [hasDraft, setHasDraft] = useState(false);
 
-  // Initialize
+  // Initialize and load draft
   useEffect(() => {
     const initializePage = async () => {
       try {
@@ -72,6 +73,16 @@ export default function DiaryPage() {
         // Fetch notes
         const response = await apiClient.get("/notes");
         setNotes(response.data);
+
+        // Load draft from localStorage
+        const draftTitle = localStorage.getItem("noteDraftTitle") || "";
+        const draftContent = localStorage.getItem("noteDraftContent") || "";
+        
+        if (draftTitle || draftContent) {
+          setTitle(draftTitle);
+          setContent(draftContent);
+          setHasDraft(true);
+        }
       } catch (err) {
         console.error("Error initializing:", err);
         localStorage.removeItem("user");
@@ -84,11 +95,35 @@ export default function DiaryPage() {
     initializePage();
   }, [router]);
 
+  // Auto-save draft when title or content changes
+  useEffect(() => {
+    const saveTimer = setTimeout(() => {
+      if ((title || content) && !selectedNote && !editingNote) {
+        try {
+          localStorage.setItem("noteDraftTitle", title);
+          localStorage.setItem("noteDraftContent", content);
+          setHasDraft(true);
+        } catch (e) {
+          console.error("Failed to save draft:", e);
+        }
+      }
+    }, 1500);
+
+    return () => clearTimeout(saveTimer);
+  }, [title, content, selectedNote, editingNote]);
+
   const handleNewNote = () => {
     setSelectedNote(null);
     setEditingNote(null);
     setTitle("");
     setContent("");
+    setHasDraft(false);
+    try {
+      localStorage.removeItem("noteDraftTitle");
+      localStorage.removeItem("noteDraftContent");
+    } catch (e) {
+      console.error("Failed to clear draft:", e);
+    }
   };
 
   const handleSelectNote = (note: Note) => {
@@ -139,6 +174,15 @@ export default function DiaryPage() {
         setTitle("");
         setContent("");
       }
+      
+      // Clear draft from localStorage after successful save
+      try {
+        localStorage.removeItem("noteDraftTitle");
+        localStorage.removeItem("noteDraftContent");
+        setHasDraft(false);
+      } catch (e) {
+        console.error("Failed to clear draft:", e);
+      }      
     } catch (err) {
       setError("Failed to save note");
       console.error("Save error:", err);
@@ -295,12 +339,17 @@ export default function DiaryPage() {
               )}
             </Button>
 
-            <h2 className="text-lg font-semibold text-foreground">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
               {editingNote
                 ? "Edit Note"
                 : selectedNote
                 ? "View Note"
                 : "New Note"}
+              {hasDraft && !selectedNote && !editingNote && (
+                <span className="text-xs px-2 py-1 bg-yellow-500/20 text-yellow-600 rounded-full border border-yellow-500/30">
+                  📝 Draft
+                </span>
+              )}
             </h2>
           </div>
 
@@ -360,9 +409,9 @@ export default function DiaryPage() {
                         ).toLocaleDateString()}`}
                   </p>
                 </div>
-                <div className="bg-secondary/50 rounded-lg p-6 min-h-96 whitespace-pre-wrap text-foreground/90">
-                  {selectedNote.content}
-                </div>
+                <div className="bg-secondary/50 rounded-lg p-6 min-h-96 text-foreground/90 prose prose-invert max-w-none"
+                  dangerouslySetInnerHTML={{ __html: selectedNote.content }}
+                />
 
                 <div className="flex gap-2">
                   <Button
