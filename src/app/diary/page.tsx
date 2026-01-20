@@ -51,7 +51,7 @@ export default function DiaryPage() {
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteNoteId, setDeleteNoteId] = useState<number | null>(null);
   const [error, setError] = useState("");
@@ -324,7 +324,7 @@ export default function DiaryPage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className={`border-b border-border bg-card/50 backdrop-blur p-4 flex items-center justify-between ${sidebarOpen ? "w-max" : "w-full"}`}>
+        <div className={`border-b border-border bg-card/50 backdrop-blur p-4 flex items-center justify-between ${sidebarOpen ? "w-max sm:w-full" : "w-full"}`}>
           <div className="flex items-center gap-4">
             <Button
             className={`${sidebarOpen ? "hidden"  : ""}`}
@@ -385,7 +385,7 @@ export default function DiaryPage() {
         </div>
 
         {/* Editor Area */}
-        <div className={`flex-1 overflow-y-auto p-6 ${sidebarOpen ? "w-max" : "w-full"}`}>
+        <div className={`flex-1 overflow-y-auto p-6 ${sidebarOpen ? "w-max sm:w-full" : "w-full"}`}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
